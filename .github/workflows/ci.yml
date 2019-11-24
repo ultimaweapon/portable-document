@@ -1,0 +1,12 @@
+name: Continuous Integration
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v1
+    - uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 2.2.108
+    - run: dotnet build src/PortableDocument.sln
+    - run: for p in src/*.Tests; do dotnet test $p; done;
