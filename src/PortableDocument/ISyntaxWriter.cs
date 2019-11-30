@@ -54,5 +54,25 @@ namespace PortableDocument
         /// The resulting line is too long.
         /// </exception>
         Task WriteCommentAsync(string value, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Write a name object.
+        /// </summary>
+        /// <param name="id">
+        /// The identifier of the name.
+        /// </param>
+        /// <param name="cancellationToken">
+        /// The token to monitor for cancellation requests.
+        /// </param>
+        /// <returns>
+        /// A <see cref="Task"/> that represents the asynchronous write operation.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="id"/> is <c>null</c>.
+        /// </exception>
+        /// <exception cref="ArgumentException">
+        /// <paramref name="id"/> contains one or more entries with zero value.
+        /// </exception>
+        Task WriteNameAsync(byte[] id, CancellationToken cancellationToken);
     }
 }
