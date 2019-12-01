@@ -3,27 +3,25 @@ on: [push, pull_request]
 jobs:
   build:
     name: Build
-    runs-on: windows-latest
+    runs-on: ubuntu-18.04
     steps:
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Setup Development Environment
-      uses: seanmiddleditch/gha-setup-vsdevenv@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
       with:
-        components: Microsoft.Component.MSBuild
+        dotnet-version: 2.2.108
     - name: Build
-      shell: cmd
-      run: msbuild.exe src\PortableDocument.sln
+      run: dotnet build src/PortableDocument.sln
     - name: Unit Test
-      shell: powershell
+      shell: python
       run: |
-        Get-ChildItem -Path src -Filter *.Tests -Directory | ForEach-Object {
-          $name = $_.Name
-          $path = $_.FullName
+        import os
+        import os.path
+        import re
+        import subprocess
 
-          $runner = Start-Process -FilePath vstest.console.exe -ArgumentList $path\bin\Debug\net48\$name.dll -Wait
-
-          if ($runner.ExitCode -ne 0) {
-            exit 1
-          }
-        }
+        for file in os.listdir('src'):
+            if re.match(r'^.+\.Tests$', file) is None:
+                continue
+            subprocess.run(['dotnet', 'test', os.path.join('src', file)], check=True)
