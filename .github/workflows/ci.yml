@@ -2,11 +2,23 @@ name: Continuous Integration
 on: [push, pull_request]
 jobs:
   build:
-    runs-on: ubuntu-18.04
+    runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-dotnet@v1
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 2.2.108
-    - run: dotnet build src/PortableDocument.sln
-    - run: for p in src/*.Tests; do dotnet test $p; done;
+    - name: Build
+      run: dotnet build src\PortableDocument.sln
+    - name: Unit Test
+      run: |
+        Get-ChildItem -Path "src" -Filter "*.Tests" -Directory | ForEach-Object {
+          $project = $_.FullName
+          $runner = Start-Process -FilePath "dotnet" -ArgumentList "test", $project -Wait
+
+          if ($runner.ExitCode -ne 0) {
+            exit 1
+          }
+        }
