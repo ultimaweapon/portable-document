@@ -7,6 +7,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v1
+    - name: Setup Development Environment
+      uses: seanmiddleditch/gha-setup-vsdevenv@v1
+      with:
+        components: Microsoft.Component.MSBuild
     - name: Build
       shell: cmd
       run: msbuild.exe src\PortableDocument.sln
