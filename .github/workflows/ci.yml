@@ -14,7 +14,7 @@ jobs:
     - name: Build
       run: dotnet build src/PortableDocument.sln
     - name: Unit Test
-      shell: python
+      shell: python3 {0}
       run: |
         import os
         import os.path
