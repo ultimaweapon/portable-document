@@ -3,25 +3,24 @@ on: [push, pull_request]
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-18.04
+    runs-on: windows-latest
     steps:
     - name: Checkout
       uses: actions/checkout@v1
-    - name: Setup .NET Core
+    - name: Setup .NET Core 2.2
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 2.2.108
+        dotnet-version: 2.2.207
     - name: Build
-      run: dotnet build src/PortableDocument.sln
+      shell: cmd
+      run: dotnet.exe build src\PortableDocument.sln
     - name: Unit Test
-      shell: python3 {0}
       run: |
-        import os
-        import os.path
-        import re
-        import subprocess
+        Get-ChildItem -Path src -Filter *.Tests -Directory | ForEach-Object {
+            $path = $_.FullName
+            $runner = Start-Process -FilePath dotnet.exe -ArgumentList test, --no-build, -v=normal, $path -NoNewWindow -PassThru -Wait
 
-        for file in os.listdir('src'):
-            if re.match(r'^.+\.Tests$', file) is None:
-                continue
-            subprocess.run(['dotnet', 'test', os.path.join('src', file)], check=True)
+            if ($runner.ExitCode -ne 0) {
+                exit $runner.ExitCode
+            }
+        }
