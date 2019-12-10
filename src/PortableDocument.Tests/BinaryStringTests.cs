@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Security.Cryptography;
 using FluentAssertions;
 using Xunit;
@@ -274,6 +275,48 @@ namespace PortableDocument.Tests
             // Assert.
             subject.FindEndOfLine().Should().Be((position, EndOfLine.Both));
             subject.FindEndOfLine(position).Should().Be((position, EndOfLine.Both));
+        }
+
+        [Fact]
+        public void GetEnumerator_WithNullInstance_ShouldThrow()
+        {
+            BinaryString.Null.Invoking(s => s.GetEnumerator())
+                             .Should().ThrowExactly<InvalidOperationException>();
+            BinaryString.Null.As<IEnumerable>().Invoking(s => s.GetEnumerator())
+                             .Should().ThrowExactly<InvalidOperationException>();
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        public void GetEnumerator_WithNonNullInstance_ShouldReturnEnumeratorWithCorrectOrder(int length)
+        {
+            // Arrange.
+            var data = new byte[length];
+
+            using (var random = RandomNumberGenerator.Create())
+            {
+                random.GetBytes(data);
+            }
+
+            var subject = new BinaryString(data);
+
+            // Assert.
+            Assert(subject.GetEnumerator());
+            Assert(((IEnumerable)subject).GetEnumerator());
+
+            void Assert(IEnumerator enumerator)
+            {
+                foreach (var b in data)
+                {
+                    enumerator.MoveNext().Should().BeTrue();
+                    enumerator.Current.Should().Be(b);
+                }
+
+                enumerator.MoveNext().Should().BeFalse();
+            }
         }
 
         [Fact]

@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace PortableDocument
@@ -6,7 +8,7 @@ namespace PortableDocument
     /// <summary>
     /// Represents a binary string.
     /// </summary>
-    public struct BinaryString : IEquatable<BinaryString>
+    public struct BinaryString : IEnumerable<byte>, IEquatable<BinaryString>
     {
         /// <summary>
         /// Represents a null instance.
@@ -93,6 +95,16 @@ namespace PortableDocument
             return (-1, default(EndOfLine));
         }
 
+        public IEnumerator<byte> GetEnumerator()
+        {
+            if (IsNull)
+            {
+                throw new InvalidOperationException("The object is null.");
+            }
+
+            return ((IEnumerable<byte>)this.data).GetEnumerator();
+        }
+
         public override int GetHashCode()
         {
             return IsNull ? 0 : this.data.Aggregate(17, (previous, next) => previous * (29 + next));
@@ -152,6 +164,11 @@ namespace PortableDocument
         public static implicit operator BinaryString(byte[] data)
         {
             return new BinaryString(data);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
         }
     }
 }
