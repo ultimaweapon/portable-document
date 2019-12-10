@@ -139,5 +139,19 @@ namespace PortableDocument
                     return null;
             }
         }
+
+        /// <summary>
+        /// Defines an implicit conversion of an array of byte to a <see cref="BinaryString"/>.
+        /// </summary>
+        /// <param name="data">
+        /// The byte array to convert.
+        /// </param>
+        /// <returns>
+        /// A <see cref="BinaryString"/> that was converted.
+        /// </returns>
+        public static implicit operator BinaryString(byte[] data)
+        {
+            return new BinaryString(data);
+        }
     }
 }

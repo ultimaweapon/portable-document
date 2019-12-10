@@ -8,7 +8,7 @@ namespace PortableDocument.Tests
     public sealed class BinaryStringTests
     {
         readonly byte[] data;
-        readonly BinaryString subject;
+        BinaryString subject;
 
         public BinaryStringTests()
         {
@@ -398,6 +398,25 @@ namespace PortableDocument.Tests
 
             // Assert.
             subject.IsEndOfLine(position).Should().Be(EndOfLine.Both);
+        }
+
+        [Fact]
+        public void ImplicitByteArrarToBinaryString_WithNull_ShouldReturnNullInstance()
+        {
+            this.subject = null;
+
+            this.subject.IsNull.Should().BeTrue();
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(2)]
+        public void ImplicitByteArrarToBinaryString_WithNonNull_ShouldReturnNonNullInstance(int length)
+        {
+            this.subject = new byte[length];
+
+            this.subject.IsNull.Should().BeFalse();
         }
     }
 }
