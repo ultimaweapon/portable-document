@@ -19,7 +19,7 @@ jobs:
         dotnet-version: 2.2.207
     - name: Install Codecov
       shell: cmd
-      run: choco install codecov
+      run: choco install codecov -r
     - name: Build
       shell: cmd
       run: dotnet.exe build %SOLUTION%
@@ -28,7 +28,7 @@ jobs:
       run: dotnet.exe test --no-build -v normal --collect "Code Coverage" -r "%TEST_RESULTS%" %SOLUTION%
     - name: Transform Test Results
       run: |
-        New-Item -Path $Env:COVERAGE_REPORTS -ItemType Directory
+        New-Item -Path $Env:COVERAGE_REPORTS -ItemType Directory | Out-Null
 
         Get-ChildItem -Path $Env:TEST_RESULTS -Filter *.coverage -Recurse -File | ForEach-Object {
             $name = $_.Directory.Name
@@ -50,8 +50,14 @@ jobs:
     - name: Upload Code Coverage
       run: |
         $files = Get-ChildItem -Path $Env:COVERAGE_REPORTS -Filter *.coveragexml -File | Join-String -Property Name -Separator " " -OutputPrefix "$Env:COVERAGE_REPORTS\"
+        $args = @(
+          "-f",
+          $files,
+          "-t",
+          $Env:CODECOV_TOKEN
+        )
 
-        $uploader = Start-Process -FilePath codecov.exe -ArgumentList -f, $files, -t, $Env:CODECOV_TOKEN -NoNewWindow -PassThru -Wait
+        $uploader = Start-Process -FilePath codecov.exe -ArgumentList $args -NoNewWindow -PassThru -Wait
 
         if ($uploader.ExitCode -ne 0) {
             exit $uploader.ExitCode
