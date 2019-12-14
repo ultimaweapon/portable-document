@@ -153,6 +153,41 @@ namespace PortableDocument
         }
 
         /// <summary>
+        /// Returns a value that indicates whether two <see cref="BinaryString"/> values are equal.
+        /// </summary>
+        /// <param name="first">
+        /// The first value to compare.
+        /// </param>
+        /// <param name="second">
+        /// The second value to compare.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if <paramref name="first"/> and <paramref name="second"/> are equal; otherwise, <c>false</c>.
+        /// </returns>
+        public static bool operator ==(BinaryString first, BinaryString second)
+        {
+            return first.Equals(second);
+        }
+
+        /// <summary>
+        /// Returns a value that indicates whether two <see cref="BinaryString"/> objects have different values.
+        /// </summary>
+        /// <param name="first">
+        /// The first value to compare.
+        /// </param>
+        /// <param name="second">
+        /// The second value to compare.
+        /// </param>
+        /// <returns>
+        /// <c>true</c> if <paramref name="first"/> and <paramref name="second"/> are not equal; otherwise,
+        /// <c>false</c>.
+        /// </returns>
+        public static bool operator !=(BinaryString first, BinaryString second)
+        {
+            return !(first == second);
+        }
+
+        /// <summary>
         /// Defines an implicit conversion of an array of byte to a <see cref="BinaryString"/>.
         /// </summary>
         /// <param name="data">

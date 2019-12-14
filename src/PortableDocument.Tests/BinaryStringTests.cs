@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Linq;
 using System.Security.Cryptography;
 using FluentAssertions;
 using Xunit;
@@ -50,79 +51,56 @@ namespace PortableDocument.Tests
         [Fact]
         public void Equals_WithDifferentType_ShouldReturnFalse()
         {
-            this.subject.Equals(this.data).Should().BeFalse();
+            this.subject.Equals((object)this.data).Should().BeFalse();
         }
 
         [Fact]
         public void Equals_WithBothNull_ShouldReturnTrue()
         {
-            var first = new BinaryString(null);
-            var second = new BinaryString(null);
-
-            first.Equals(second).Should().BeTrue();
-            first.Equals((object)second).Should().BeTrue();
+            TestBothNullEquality(true, (left, right) => left.Equals(right));
+            TestBothNullEquality(true, (left, right) => left.Equals((object)right));
         }
 
         [Fact]
         public void Equals_CurrentIsNull_ShouldReturnFalse()
         {
-            var other = new BinaryString(new byte[0]);
-
-            BinaryString.Null.Equals(other).Should().BeFalse();
-            BinaryString.Null.Equals((object)other).Should().BeFalse();
+            TestLeftIsNullEquality(false, (left, right) => left.Equals(right));
+            TestLeftIsNullEquality(false, (left, right) => left.Equals((object)right));
         }
 
         [Fact]
         public void Equals_OtherIsNull_shouldReturnFalse()
         {
-            this.subject.Equals(BinaryString.Null).Should().BeFalse();
-            this.subject.Equals((object)BinaryString.Null).Should().BeFalse();
+            TestRightIsNullEquality(false, (left, right) => left.Equals(right));
+            TestRightIsNullEquality(false, (left, right) => left.Equals((object)right));
         }
 
         [Fact]
         public void Equals_BothHaveZeroLength_ShouldReturnTrue()
         {
-            var first = new BinaryString(new byte[0]);
-            var second = new BinaryString(new byte[0]);
-
-            first.Equals(second).Should().BeTrue();
-            first.Equals((object)second).Should().BeTrue();
+            TestBothZeroLengthEquality(true, (left, right) => left.Equals(right));
+            TestBothZeroLengthEquality(true, (left, right) => left.Equals((object)right));
         }
 
-        [Theory]
-        [InlineData(0, 1)]
-        [InlineData(1, 0)]
-        [InlineData(1, 2)]
-        [InlineData(2, 1)]
-        public void Equals_WithDifferentLength_ShouldReturnFalse(int left, int right)
+        [Fact]
+        public void Equals_WithDifferentLength_ShouldReturnFalse()
         {
-            var first = new BinaryString(new byte[left]);
-            var second = new BinaryString(new byte[right]);
-
-            first.Equals(second).Should().BeFalse();
-            first.Equals((object)second).Should().BeFalse();
+            TestDifferentLengthEquality(false, (left, right) => left.Equals(right));
+            TestDifferentLengthEquality(false, (left, right) => left.Equals((object)right));
         }
 
-        [Theory]
-        [InlineData(1)]
-        [InlineData(2)]
-        [InlineData(3)]
-        public void Equals_WithSameLengthButDifferentData_ShouldReturnFalse(int length)
+        [Fact]
+        public void Equals_WithSameLengthButDifferentData_ShouldReturnFalse()
         {
-            var data1 = new byte[length];
-            var data2 = new byte[length];
+            TestSameLengthButDifferentDataEquality(false, (left, right) => left.Equals(right));
+            TestSameLengthButDifferentDataEquality(false, (left, right) => left.Equals((object)right));
+        }
 
-            using (var random = RandomNumberGenerator.Create())
-            {
-                random.GetBytes(data1);
-                random.GetBytes(data2);
-            }
-
-            var first = new BinaryString(data1);
-            var second = new BinaryString(data2);
-
-            first.Equals(second).Should().BeFalse();
-            first.Equals((object)second).Should().BeFalse();
+        [Fact]
+        public void Equals_WithSameData_ShouldReturnTrue()
+        {
+            TestSameDataEquality(true, (left, right) => left.Equals(right));
+            TestSameDataEquality(true, (left, right) => left.Equals((object)right));
         }
 
         [Fact]
@@ -444,6 +422,90 @@ namespace PortableDocument.Tests
         }
 
         [Fact]
+        public void Equality_WithBothNull_ShouldReturnTrue()
+        {
+            TestBothNullEquality(true, (left, right) => left == right);
+        }
+
+        [Fact]
+        public void Equality_LeftIsNull_ShouldReturnFalse()
+        {
+            TestLeftIsNullEquality(false, (left, right) => left == right);
+        }
+
+        [Fact]
+        public void Equality_RightIsNull_shouldReturnFalse()
+        {
+            TestRightIsNullEquality(false, (left, right) => left == right);
+        }
+
+        [Fact]
+        public void Equality_BothHaveZeroLength_ShouldReturnTrue()
+        {
+            TestBothZeroLengthEquality(true, (left, right) => left == right);
+        }
+
+        [Fact]
+        public void Equality_WithDifferentLength_ShouldReturnFalse()
+        {
+            TestDifferentLengthEquality(false, (left, right) => left == right);
+        }
+
+        [Fact]
+        public void Equality_WithSameLengthButDifferentData_ShouldReturnFalse()
+        {
+            TestSameLengthButDifferentDataEquality(false, (left, right) => left == right);
+        }
+
+        [Fact]
+        public void Equality_WithSameData_ShouldReturnTrue()
+        {
+            TestSameDataEquality(true, (left, right) => left == right);
+        }
+
+        [Fact]
+        public void Inequality_WithBothNull_ShouldReturnFalse()
+        {
+            TestBothNullEquality(false, (left, right) => left != right);
+        }
+
+        [Fact]
+        public void Inequality_LeftIsNull_ShouldReturnTrue()
+        {
+            TestLeftIsNullEquality(true, (left, right) => left != right);
+        }
+
+        [Fact]
+        public void Inequality_RightIsNull_shouldReturnTrue()
+        {
+            TestRightIsNullEquality(true, (left, right) => left != right);
+        }
+
+        [Fact]
+        public void Inequality_BothHaveZeroLength_ShouldReturnFalse()
+        {
+            TestBothZeroLengthEquality(false, (left, right) => left != right);
+        }
+
+        [Fact]
+        public void Inequality_WithDifferentLength_ShouldReturnTrue()
+        {
+            TestDifferentLengthEquality(true, (left, right) => left != right);
+        }
+
+        [Fact]
+        public void Inequality_WithSameLengthButDifferentData_ShouldReturnTrue()
+        {
+            TestSameLengthButDifferentDataEquality(true, (left, right) => left != right);
+        }
+
+        [Fact]
+        public void Inequality_WithSameData_ShouldReturnFalse()
+        {
+            TestSameDataEquality(false, (left, right) => left != right);
+        }
+
+        [Fact]
         public void ImplicitByteArrarToBinaryString_WithNull_ShouldReturnNullInstance()
         {
             this.subject = null;
@@ -460,6 +522,93 @@ namespace PortableDocument.Tests
             this.subject = new byte[length];
 
             this.subject.IsNull.Should().BeFalse();
+        }
+
+        void TestBothNullEquality(bool expected, Func<BinaryString, BinaryString, bool> test)
+        {
+            var first = new BinaryString(null);
+            var second = new BinaryString(null);
+
+            test(first, second).Should().Be(expected);
+        }
+
+        void TestLeftIsNullEquality(bool expected, Func<BinaryString, BinaryString, bool> test)
+        {
+            var other = new BinaryString(new byte[0]);
+
+            test(BinaryString.Null, other).Should().Be(expected);
+        }
+
+        void TestRightIsNullEquality(bool expected, Func<BinaryString, BinaryString, bool> test)
+        {
+            test(this.subject, BinaryString.Null).Should().Be(expected);
+        }
+
+        void TestBothZeroLengthEquality(bool expected, Func<BinaryString, BinaryString, bool> test)
+        {
+            var first = new BinaryString(new byte[0]);
+            var second = new BinaryString(new byte[0]);
+
+            test(first, second).Should().Be(expected);
+        }
+
+        void TestDifferentLengthEquality(bool expected, Func<BinaryString, BinaryString, bool> test)
+        {
+            var cases = new (int left, int right)[]
+            {
+                (0, 1),
+                (1, 0),
+                (1, 2),
+                (2, 1)
+            };
+
+            foreach (var c in cases)
+            {
+                var first = new BinaryString(new byte[c.left]);
+                var second = new BinaryString(new byte[c.right]);
+
+                test(first, second).Should().Be(expected);
+            }
+        }
+
+        void TestSameLengthButDifferentDataEquality(bool expected, Func<BinaryString, BinaryString, bool> test)
+        {
+            foreach (var length in Enumerable.Range(1, 3))
+            {
+                var data1 = new byte[length];
+                var data2 = new byte[length];
+
+                using (var random = RandomNumberGenerator.Create())
+                {
+                    random.GetBytes(data1);
+                    random.GetBytes(data2);
+                }
+
+                var first = new BinaryString(data1);
+                var second = new BinaryString(data2);
+
+                test(first, second).Should().Be(expected);
+            }
+        }
+
+        void TestSameDataEquality(bool expected, Func<BinaryString, BinaryString, bool> test)
+        {
+            foreach (var length in Enumerable.Range(1, 3))
+            {
+                var data1 = new byte[length];
+                var data2 = new byte[length];
+
+                using (var random = RandomNumberGenerator.Create())
+                {
+                    random.GetBytes(data1);
+                    Buffer.BlockCopy(data1, 0, data2, 0, data1.Length);
+                }
+
+                var first = new BinaryString(data1);
+                var second = new BinaryString(data2);
+
+                test(first, second).Should().Be(expected);
+            }
         }
     }
 }
