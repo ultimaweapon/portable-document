@@ -28,9 +28,9 @@ jobs:
       run: dotnet.exe test --no-build -v normal --collect "Code Coverage" -r "%TEST_RESULTS%" %SOLUTION%
     - name: Transform Test Results
       run: |
-        New-Item -Path Env:COVERAGE_REPORTS -ItemType Directory
+        New-Item -Path $Env:COVERAGE_REPORTS -ItemType Directory
 
-        Get-ChildItem -Path Env:TEST_RESULTS -Filter *.coverage -Recurse -File | ForEach-Object {
+        Get-ChildItem -Path $Env:TEST_RESULTS -Filter *.coverage -Recurse -File | ForEach-Object {
             $name = $_.Directory.Name
             $input = $_.FullName
             $args = @(
@@ -41,7 +41,7 @@ jobs:
 
             Write-Host -Object "Processing $input"
 
-            $converter = Start-Process -FilePath Env:COVERAGE_TOOL -ArgumentList $args -NoNewWindow -PassThru -Wait
+            $converter = Start-Process -FilePath $Env:COVERAGE_TOOL -ArgumentList $args -NoNewWindow -PassThru -Wait
 
             if ($converter.ExitCode -ne 0) {
                 exit $converter.ExitCode
@@ -49,9 +49,9 @@ jobs:
         }
     - name: Upload Code Coverage
       run: |
-        $files = Get-ChildItem -Path Env:COVERAGE_REPORTS -Filter *.coveragexml -File | Join-String -Property Name -Separator " " -OutputPrefix "$Env:COVERAGE_REPORTS\"
+        $files = Get-ChildItem -Path $Env:COVERAGE_REPORTS -Filter *.coveragexml -File | Join-String -Property Name -Separator " " -OutputPrefix "$Env:COVERAGE_REPORTS\"
 
-        $uploader = Start-Process -FilePath codecov.exe -ArgumentList -f, $files, -t, Env:CODECOV_TOKEN -NoNewWindow -PassThru -Wait
+        $uploader = Start-Process -FilePath codecov.exe -ArgumentList -f, $files, -t, $Env:CODECOV_TOKEN -NoNewWindow -PassThru -Wait
 
         if ($uploader.ExitCode -ne 0) {
             exit $uploader.ExitCode
