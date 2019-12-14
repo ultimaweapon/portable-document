@@ -1,5 +1,11 @@
 name: Continuous Integration
 on: [push, pull_request]
+env:
+  CODECOV_TOKEN: 3e99caf9-aa51-4411-8fac-64fc97927745
+  COVERAGE_REPORTS: coverage-reports
+  COVERAGE_TOOL: C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\Team Tools\Dynamic Code Coverage Tools\CodeCoverage.exe
+  SOLUTION: src\PortableDocument.sln
+  TEST_RESULTS: test-results
 jobs:
   build:
     name: Build
@@ -11,16 +17,42 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 2.2.207
+    - name: Install Codecov
+      shell: cmd
+      run: choco install codecov
     - name: Build
       shell: cmd
-      run: dotnet.exe build src\PortableDocument.sln
+      run: dotnet.exe build %SOLUTION%
     - name: Unit Test
+      shell: cmd
+      run: dotnet.exe test --no-build -v normal --collect "Code Coverage" -r "%TEST_RESULTS%" %SOLUTION%
+    - name: Transform Test Results
       run: |
-        Get-ChildItem -Path src -Filter *.Tests -Directory | ForEach-Object {
-            $path = $_.FullName
-            $runner = Start-Process -FilePath dotnet.exe -ArgumentList test, --no-build, -v=normal, $path -NoNewWindow -PassThru -Wait
+        New-Item -Path Env:COVERAGE_REPORTS -ItemType Directory
 
-            if ($runner.ExitCode -ne 0) {
-                exit $runner.ExitCode
+        Get-ChildItem -Path Env:TEST_RESULTS -Filter *.coverage -Recurse -File | ForEach-Object {
+            $name = $_.Directory.Name
+            $input = $_.FullName
+            $args = @(
+                "analyze",
+                "/output:$Env:COVERAGE_REPORTS\$name.coveragexml",
+                $input
+            )
+
+            Write-Host -Object "Processing $input"
+
+            $converter = Start-Process -FilePath Env:COVERAGE_TOOL -ArgumentList $args -NoNewWindow -PassThru -Wait
+
+            if ($converter.ExitCode -ne 0) {
+                exit $converter.ExitCode
             }
+        }
+    - name: Upload Code Coverage
+      run: |
+        $files = Get-ChildItem -Path Env:COVERAGE_REPORTS -Filter *.coveragexml -File | Join-String -Property Name -Separator " " -OutputPrefix "$Env:COVERAGE_REPORTS\"
+
+        $uploader = Start-Process -FilePath codecov.exe -ArgumentList -f, $files, -t, Env:CODECOV_TOKEN -NoNewWindow -PassThru -Wait
+
+        if ($uploader.ExitCode -ne 0) {
+            exit $uploader.ExitCode
         }
