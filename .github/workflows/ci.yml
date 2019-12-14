@@ -19,7 +19,7 @@ jobs:
         dotnet-version: 2.2.207
     - name: Install Codecov
       shell: cmd
-      run: choco install codecov -r
+      run: choco install codecov --no-progress
     - name: Build
       shell: cmd
       run: dotnet.exe build %SOLUTION%
